@@ -3,15 +3,8 @@ import {Pool} from 'pg'
 import {getEmbedding} from "@/app/lib/ollama";
 
 
-const pool = new Pool({
-  // connectionString: process.env.POSTGRES_URL,
-  schema: 'public',
-  url: process.env.DATABASE_URL,
-  user: process.env.DATABASE_USER,
-  database: process.env.DATABASE_NAME,
-  password: process.env.DATABASE_PASSWORD,
-  port: 5432
-})
+const pool = new Pool({connectionString: process.env.DATABASE_URL})
+
 
 export async function POST(req: Request) {
   const {name, bio} = await req.json()

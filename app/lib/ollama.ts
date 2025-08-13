@@ -9,5 +9,6 @@ export async function getEmbedding(text: string) {
   })
   const data = await res.json()
   const embedding = data.embedding
+  console.log("Embedding", embedding)
   return `[${embedding.join(',')}]`
 }
