@@ -10,4 +10,28 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./db-data/:/var/lib/postgresql/data/
+      - pgdata:/var/lib/postgresql/data/
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ] # Compose v2, requires NVIDIA Container Toolkit
+    entrypoint: >
+      sh -c "
+      ollama serve &
+      sleep 5 &&
+      ollama pull nomic-embed-text &&
+      ollama pull gemma3:4b &&
+      wait
+      "
+volumes:
+  pgdata:
+  ollama-data:
