@@ -3,22 +3,28 @@ import {FormEvent, useEffect, useState} from "react";
 
 export default function Home() {
   const [name, setName] = useState('')
+  const [age, setAge] = useState('')
   const [bio, setBio] = useState('')
   const [query, setQuery] = useState('')
+  const [rewritten, setRewritten] = useState("");
   const [results, setResults] = useState<any[]>([])
   const [loading, setLoading] = useState(false);
+  const [adding, setAdding] = useState(false);
 
 
   useEffect(() => {
     console.log('DB URL:', process.env.DATABASE_URL)
   })
 
-  async function handleAddPerson() {
+  async function handleAddPerson(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setAdding(true)
     await fetch('/api/people', {
       method: 'POST',
-      body: JSON.stringify({name, bio}),
+      body: JSON.stringify({name, age, bio}),
       headers: {'Content-Type': 'application/json'},
     })
+    setAdding(false);
   }
 
   async function handleSearch(event: FormEvent<HTMLFormElement>) {
@@ -31,6 +37,7 @@ export default function Home() {
     })
     const data = await res.json()
     setResults(data.results)
+    setRewritten(data.rewritten)
     setLoading(false);
   }
 
@@ -43,28 +50,40 @@ export default function Home() {
           {/* Add Person Section */}
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-3">Add Person</h2>
-            <div className="flex flex-col gap-3">
-              <input
-                  type="text"
-                  placeholder="Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="input input-bordered w-full focus:ring-1 focus:ring-primary/50 focus:outline-none"
-              />
-              <textarea
-                  placeholder="Bio"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  className="textarea textarea-bordered w-full focus:ring-1 focus:ring-primary/50 focus:outline-none"
-                  rows={3}
-              />
-              <button
-                  onClick={handleAddPerson}
-                  className="btn btn-success w-fit self-start"
-              >
-                Add
-              </button>
-            </div>
+            <form onSubmit={handleAddPerson}>
+
+
+              <div className="flex flex-col gap-3">
+                <input
+                    type="text"
+                    placeholder="Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="input input-bordered w-full focus:ring-1 focus:ring-primary/50 focus:outline-none"
+                />
+                <input
+                    type="number"
+                    placeholder="Age"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    className="input input-bordered w-full focus:ring-1 focus:ring-primary/50 focus:outline-none"
+                />
+                <textarea
+                    placeholder="Bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    className="textarea textarea-bordered w-full focus:ring-1 focus:ring-primary/50 focus:outline-none"
+                    rows={3}
+                />
+                <button type={"submit"}
+                        className="btn btn-success w-fit self-start">
+                  Add
+                </button>
+                {adding && (
+                    <progress className="progress progress-primary w-full mt-2"></progress>
+                )}
+              </div>
+            </form>
           </section>
 
           {/* Search Section */}
@@ -93,24 +112,35 @@ export default function Home() {
             {loading && (
                 <progress className="progress progress-primary w-full mt-2"></progress>
             )}
+
+            {rewritten && (
+                <div className="mb-2 text-sm text-gray-500">
+                  Optimized query: <span className="italic">{rewritten}</span>
+                </div>
+            )}
+
             <ul className="grid gap-4">
               {results.map((person) => (
                   <li key={person.id} className="card bg-base-100 shadow-md">
                     <div className="card-body">
                       <div className="flex justify-between items-center mb-2">
                         <h3 className="card-title">{person.name}</h3>
+
+                        {/* Fancy score badge */}
                         <span
-                            className={`badge ${
-                                person.relevance <= 0.5 ? 'badge-ghost' : 'badge-success'
-                            }`}
-                        >
-                    LLM Score: {person.relevance.toFixed(2)}
-                  </span>
+                            className={`
+                            px-3 py-1 rounded-full text-white text-sm font-semibold shadow-md 
+                            ${person.score.toFixed(2) >= 0.65 ? 'animate-pulse' : ''}
+                            ${person.score.toFixed(2) >= 0.5
+                                ? 'bg-gradient-to-r from-green-500 to-emerald-600'
+                                : 'bg-gradient-to-r from-gray-400 to-gray-600'}
+                          `}>
+                          {person.score?.toFixed(2)}
+                        </span>
                       </div>
+
+                      <p className="text-gray-600 mb-2">{person.age}</p>
                       <p className="text-gray-600 mb-2">{person.bio}</p>
-                      <p className="text-sm text-gray-400">
-                        Embedded Score: {person.score.toFixed(3)}
-                      </p>
                     </div>
                   </li>
               ))}
