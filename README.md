@@ -1,5 +1,5 @@
 # OllamaVector
-
+##testing
 OllamaVector is a full-stack application demonstrating semantic search and embedding workflows using Next.js, Ollama (with nomic-embed-text and gemma3 models), and Postgres with vector search capabilities. The app enables creation of person records with embedded vectors and supports semantic search via natural language queries, automatic query rewriting, and vector similarity search in the database.
 
 ## What are Embeddings and RAG Models?
